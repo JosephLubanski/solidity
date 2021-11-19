@@ -41,9 +41,92 @@ AAAAAAA                   AAAAAAA LLLLLLLLLLLLLLLLLLLLLLLL IIIIIIIIII        CCC
 
 
 */
+pragma solidity ^0.8.0;
 
+library SafeMath {
+    function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            uint256 c = a + b;
+            if (c < a) return (false, 0);
+            return (true, c);
+        }
+    }
+    function trySub(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            if (b > a) return (false, 0);
+            return (true, a - b);
+        }
+    }
+    function tryMul(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
+            // benefit is lost if 'b' is also tested.
+            // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
+            if (a == 0) return (true, 0);
+            uint256 c = a * b;
+            if (c / a != b) return (false, 0);
+            return (true, c);
+        }
+    }
+    function tryDiv(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            if (b == 0) return (false, 0);
+            return (true, a / b);
+        }
+    }
+    function tryMod(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            if (b == 0) return (false, 0);
+            return (true, a % b);
+        }
+    }
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a + b;
+    }
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a - b;
+    }
+    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a * b;
+    }
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a / b;
+    }
+    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a % b;
+    }
+    function sub(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        unchecked {
+            require(b <= a, errorMessage);
+            return a - b;
+        }
+    }
+    function div(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        unchecked {
+            require(b > 0, errorMessage);
+            return a / b;
+        }
+    }
+    function mod(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        unchecked {
+            require(b > 0, errorMessage);
+            return a % b;
+        }
+    }
+}
 pragma solidity ^0.8.7;
-
 
 interface IERC165 {
     function supportsInterface(bytes4 interfaceId) external view returns (bool);
@@ -701,7 +784,8 @@ abstract contract Ownable is Context {
 
 contract Alige_Game is ERC721Enumerable, Ownable {
   using Strings for uint256;
-
+  using SafeMath for uint256;
+  
   string public baseURI;
   string public baseExtension = ".json";
   uint256 public cost = 0.077 ether;
@@ -709,6 +793,11 @@ contract Alige_Game is ERC721Enumerable, Ownable {
   uint256 public maxMintAmount = 50;
   bool public paused = false;
   mapping(address => bool) public whitelisted;
+  mapping(address => uint256) public whitelistMintCount;
+  mapping(address => uint256) public publicMintCount;
+  
+  uint256 public maxWhitelistMintCount = 2;
+  uint256 public maxPublicMintCount = 10;
 
   constructor(
     string memory _name,
@@ -737,11 +826,25 @@ contract Alige_Game is ERC721Enumerable, Ownable {
           require(msg.value >= cost * _mintAmount);
         }
     }
+    
+    if (whitelisted[msg.sender]) {
+        require(whitelistMintCount[msg.sender].add(_mintAmount) <= maxWhitelistMintCount);
+    }
+    else {
+        require(publicMintCount[msg.sender].add(_mintAmount) <= maxPublicMintCount);
+    }
 
     for (uint256 i = 1; i <= _mintAmount; i++) {
       _safeMint(_to, supply + i);
+      if(whitelisted[msg.sender]) {
+        whitelistMintCount[msg.sender] = whitelistMintCount[msg.sender].add(1);
+        }
+        else {
+            publicMintCount[msg.sender] = publicMintCount[msg.sender].add(1);
+        }
     }
   }
+  
 
   function walletOfOwner(address _owner)
     public
