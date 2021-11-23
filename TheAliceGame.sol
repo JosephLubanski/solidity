@@ -782,7 +782,7 @@ abstract contract Ownable is Context {
     }
 }
 
-contract The_Alige_Game_NFT is ERC721Enumerable, Ownable {
+contract The_Alice_Game_NFT is ERC721Enumerable, Ownable {
   using Strings for uint256;
   using SafeMath for uint256;
   
@@ -790,14 +790,14 @@ contract The_Alige_Game_NFT is ERC721Enumerable, Ownable {
   string public baseExtension = ".json";
   uint256 public cost = 0.077 ether;
   uint256 public maxSupply = 7777;
-  uint256 public maxMintAmount = 20;
+  uint256 public maxMintAmount = 300;
   bool public paused = false;
   mapping(address => bool) public whitelisted;
   mapping(address => uint256) public whitelistMintCount;
   mapping(address => uint256) public publicMintCount;
   
   uint256 public maxWhitelistMintCount = 2;
-  uint256 public maxPublicMintCount = 10;
+  uint256 public maxPublicMintCount = 1977;
 
   constructor(
     string memory _name,
@@ -805,7 +805,7 @@ contract The_Alige_Game_NFT is ERC721Enumerable, Ownable {
     string memory _initBaseURI
   ) ERC721(_name, _symbol) {
     setBaseURI(_initBaseURI);
-    mint(msg.sender, 10);
+    mint(msg.sender, 77);
   }
 
   // internal
@@ -881,7 +881,11 @@ contract The_Alige_Game_NFT is ERC721Enumerable, Ownable {
   function setCost(uint256 _newCost) public onlyOwner() {
     cost = _newCost;
   }
-
+  
+  function setMaxPublicMintCount(uint256 _newMaxPublicMintCount) public onlyOwner() {
+    maxPublicMintCount = _newMaxPublicMintCount;
+  }
+  
   function setmaxMintAmount(uint256 _newmaxMintAmount) public onlyOwner() {
     maxMintAmount = _newmaxMintAmount;
   }
